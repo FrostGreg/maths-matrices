@@ -1,30 +1,3 @@
-def create(width, height):
-    matrix = [[0] * width for _ in range(height)]
-    return matrix
-
-
-#Test function
-def initiate():
-    m1 = create(3, 3)
-    for i in range(9):
-        m1[i // 3][i % 3] = i + 1
-
-    return m1
-
-
-def display(matrix):
-    for row in matrix:
-        print(row)
-
-
-def getheight(matrix):
-    return len(matrix)
-
-
-def getwidth(matrix):
-    return len(matrix[0])
-
-
 def vector_product(v1, v2):
     len_v1 = len(v1)
     result = []
@@ -37,134 +10,150 @@ def vector_product(v1, v2):
     return result
 
 
-def transpose(matrix):
-    w = getwidth(matrix)
-    h = getheight(matrix)
-    i = 0
-    transposed = create(w, h)
-    for row in matrix:
-        k = 0
-        for j in range(w):
-            transposed[j][i] = row[k]
-            k += 1
-        i += 1
+class Matrix:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.matrix = [[0] * self.width for _ in range(height)]
 
-    return transposed
+    def __str__(self):
+        return str(self.matrix)
+
+    def get_height(self):
+        return self.height
+
+    def get_width(self):
+        return self.width
+
+    def get_matrix(self):
+        return self.matrix
+
+    def display(self):
+        for row in self.matrix:
+            print(row)
+
+    def transpose(self):
+        w, h = self.get_width(), self.get_height()
+        i = 0
+        transposed = Matrix(w, h)
+        for row in self.matrix:
+            k = 0
+            for j in range(w):
+                transposed.matrix[j][i] = row[k]
+                k += 1
+            i += 1
+
+        return transposed
+
+    def get_diagonal(self):
+        diagonal = []
+        length = min(self.get_width(), self.get_height())
+        for i in range(length):
+            diagonal.append(self.matrix[i][i])
+
+        return diagonal
+
+    def get_trace(self):
+        trace = 0
+        for num in self.get_diagonal():
+            trace += num
+
+        return trace
+
+    def is_null(self):
+        null_test = Matrix(self.get_width(), self.get_height())
+
+        return self.matrix == null_test
+
+    def get_identity_matrix(self, size):
+        identity_matrix = Matrix(size, size)
+        for i in range(size):
+            identity_matrix.matrix[i][i] = 1
+
+        return identity_matrix
+
+    def matrix_sum(self, matrix_2, sign):
+        m1_width = self.get_width()
+        m1_height = self.get_width()
+        if m1_width != matrix_2.get_width() or m1_height != matrix_2.get_height():
+            return "Error: matrices not the same size"
+
+        result = Matrix(m1_width, m1_height)
+
+        for row_iter in range(m1_height):
+            for col_iter in range(m1_width):
+                result.matrix[row_iter][col_iter] = eval(str(self.matrix[row_iter][col_iter]) + sign +
+                                                         str(matrix_2.matrix[row_iter][col_iter]))
+
+        return result
+
+    def scalar_product(self, scalar):
+        result = Matrix(self.get_width(), self.get_height())
+        for row in self.matrix:
+            for i in range(self.get_width()):
+                result.matrix[i] = row[i] * scalar
+
+        return result
+
+    # Look into updating using vector product function
+    def matrix_product(self, matrix_2):
+        if self.get_width() != matrix_2.get_height():
+            return "Error: matrices not the same size"
+
+        result_matrix = Matrix(self.get_width(), self.get_height())
+        m2_transposed = matrix_2.transpose()
+
+        for row in range(self.get_height()):
+            for num in range(self.get_width()):
+                for j in range(self.get_width()):
+                    result_matrix.matrix[row][num] += self.matrix[row][j] * m2_transposed.matrix[num][j]
+
+        return result_matrix
+
+    def get_lu_matrices(self):
+        height = self.get_height()
+        width = self.get_width()
+
+        if height != width:
+            return "Error: Only get LU from square matrix"
+
+        lower = Matrix(width, height)
+        upper = Matrix(width, height)
+
+        for i in range(width):
+            lower.matrix[i][i] = 1
+
+        # li * uj = mi,j
+        # li = mi,j / uj
+        # uj = m1,j / li
+
+    # ONLY DOES 3X3 MATRICES NEEDS IMPROVEMENT USE LU FACTORISATION AND TAKE PRODUCT OF DIAGONAL
+    def determinant(self):
+        if self.get_height() != self.get_width():
+            return "Error: Cannot use non-square matrix"
+
+        positives = (self.matrix[0][0] * self.matrix[1][1] * self.matrix[2][2]) + \
+                    (self.matrix[1][0] * self.matrix[2][1] * self.matrix[0][2]) + \
+                    (self.matrix[2][0] * self.matrix[0][1] * self.matrix[1][2])
+
+        negatives = -(self.matrix[0][2] * self.matrix[1][1] * self.matrix[2][0]) - \
+                     (self.matrix[0][1] * self.matrix[1][0] * self.matrix[2][2]) - \
+                     (self.matrix[0][0] * self.matrix[1][2] * self.matrix[2][1])
+
+        return positives + negatives
 
 
-def get_diagonal(matrix):
-    diagonal = []
-    length = min(getwidth(matrix), getheight(matrix))
-    for i in range(length):
-        diagonal.append(matrix[i][i])
+if __name__ == "__main__":
+    m1 = Matrix(3, 3)
+    m1.matrix = [[1,2,3] for _ in range(3)]
+    m2 = Matrix(3, 3)
+    m2.matrix = [[3,2,1] for _ in range(3)]
 
-    return diagonal
+    producted = m1.matrix_product(m2)
 
+    producted.display()
 
-def get_trace(matrix):
-    trace = 0
-    for num in get_diagonal(matrix):
-        trace += num
+    m3 = Matrix(3,3)
+    m3.matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 99]]
 
-    return trace
-
-
-def is_null(matrix):
-    null = True
-    for row in matrix:
-        for num in row:
-            if num != 0:
-                null = False
-                break
-
-    return null
-
-
-def get_identity_matrix(size):
-    identity_matrix = create(size, size)
-    for i in range(size):
-        identity_matrix[i][i] = 1
-
-    return identity_matrix
-
-
-def matrix_sum(m1, m2, sign):
-    m1_width = getwidth(m1)
-    m1_height = getwidth(m1)
-    if m1_width != getwidth(m2) or m1_height != getheight(m2):
-        return "Error: matrices not the same size"
-
-    result = create(m1_width, m1_height)
-
-    for row_iter in range(m1_height):
-        for col_iter in range(m1_width):
-            result[row_iter][col_iter] = eval(str(m1[row_iter][col_iter]) + sign + str(m2[row_iter][col_iter]))
-
-    return result
-
-
-def scalar_product(matrix, scalar):
-    for row in matrix:
-        for i in range(getwidth(matrix)):
-            row[i] *= scalar
-
-    return matrix
-
-
-#Look into updating using vector product function
-def matrix_product(m1, m2):
-    if getwidth(m1) != getheight(m2):
-        return "Error: matrices not the same size"
-
-    result_matrix = create(getwidth(m1), getheight(m1))
-    m2_transposed = transpose(m2)
-
-    for row in range(len(m1)):
-        for num in range(len(m1[row])):
-            for j in range(len(m1[row])):
-                result_matrix[row][num] += m1[row][j] * m2_transposed[num][j]
-
-    return result_matrix
-
-
-def get_lu_matrices(matrix):
-    height = getheight(matrix)
-    width = getwidth(matrix)
-
-    if height != width:
-        return "Error: Only get LU from square matrix"
-
-    lower = create(width, height)
-    upper = create(width, height)
-
-    for i in range(width):
-        lower[i][i] = 1
-
-    #li * uj = mi,j
-    #li = mi,j / uj
-    #uj = m1,j / li
-
-
-#ONLY DOES 3X3 MATRICES NEEDS IMPROVEMENT USE LU FACTORISATION AND TAKE PRODUCT OF DIAGONAL
-def determinant(matrix):
-    if getheight(matrix) != getwidth(matrix):
-        return "Error: Cannot use non-square matrix"
-
-    positives = (matrix[0][0] * matrix[1][1] * matrix[2][2]) + (matrix[1][0] * matrix[2][1] * matrix[0][2]) + (matrix[2][0] * matrix[0][1] * matrix[1][2])
-    negatives = -(matrix[0][2] * matrix[1][1] * matrix[2][0]) - (matrix[0][1] * matrix[1][0] * matrix[2][2]) - (matrix[0][0] * matrix[1][2] * matrix[2][1])
-
-    return positives + negatives
-
-
-m1 = initiate()
-m2 = initiate()
-
-producted = matrix_product(m1, m2)
-
-display(producted)
-
-m3 = [[1,2,3],[4,5,6],[7,8,99]]
-
-print(determinant(m3))
-
-# this is test code for git
+    print(m3.determinant())
